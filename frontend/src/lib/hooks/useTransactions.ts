@@ -14,7 +14,7 @@ export const useTransactions = () => {
   });
 
   const addTransaction = useMutation({
-    mutationFn: async (tx: Omit<Transaction, "id">) => {
+    mutationFn: async (tx: Omit<Transaction, "_id">) => {
       const res = await api.post("/transactions/create", tx);
       console.log(res.data)
       return res.data;
@@ -24,7 +24,7 @@ export const useTransactions = () => {
 
   const updateTransaction = useMutation({
     mutationFn: async (tx: Transaction) => {
-      const res = await api.put(`/transactions/${tx.id}`, tx);
+      const res = await api.put(`/transactions/update/${tx._id}`, tx);
       return res.data;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["transactions"] }),
@@ -32,7 +32,7 @@ export const useTransactions = () => {
 
   const deleteTransaction = useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`/transactions/${id}`);
+      await api.delete(`/transactions/delete/${id}`);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["transactions"] }),
   });
