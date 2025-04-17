@@ -1,0 +1,22 @@
+POST http://localhost:5001/transactions/create
+Content-Type: application/json
+
+{
+    "amount": 500,
+    "date": "2025-04-17T00:00:00.000Z",
+    "description": "Payment for services"
+}
+
+# GET http://localhost:5001/transactions/getall
+
+# PUT http://localhost:5001/transactions/delete/6800f8f4156ea89ac3cdf376
+# Content-Type: application/json
+
+# {
+#   "amount": 750,
+#   "date": "2025-04-18T00:00:00.000Z",
+#   "description": "Updated payment for services"
+# }
+
+# DELETE http://localhost:5001/transactions/delete/6800f8f4156ea89ac3cdf376
+
