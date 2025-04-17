@@ -4,7 +4,8 @@ Content-Type: application/json
 {
     "amount": 500,
     "date": "2025-04-17T00:00:00.000Z",
-    "description": "Payment for services"
+    "description": "Payment for services",
+    "category":"Food"
 }
 
 # GET http://localhost:5001/transactions/getall
