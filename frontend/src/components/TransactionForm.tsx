@@ -1,4 +1,3 @@
-// components/TransactionFormDialog.tsx
 "use client";
 
 import {
@@ -10,16 +9,25 @@ import {
 import { useTransactions } from "@/lib/hooks/useTransactions";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
 import { Transaction } from "@/types/transaction";
 import { useEffect } from "react";
 
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+
 const transactionSchema = z.object({
   amount: z.number().positive("Amount must be positive"),
   description: z.string().min(1, "Description is required"),
+  category: z.string().min(1, "Category is required"),
 });
 
 type TransactionFormData = z.infer<typeof transactionSchema>;
@@ -41,11 +49,13 @@ export default function TransactionFormDialog({
     handleSubmit,
     formState: { errors },
     reset,
+    control,
   } = useForm<TransactionFormData>({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
       description: "",
       amount: 0,
+      category: "",
     },
   });
 
@@ -54,6 +64,7 @@ export default function TransactionFormDialog({
       reset({
         description: transaction.description,
         amount: transaction.amount,
+        category: transaction.category,
       });
     }
   }, [transaction, reset]);
@@ -64,15 +75,14 @@ export default function TransactionFormDialog({
     const transactionData = {
       ...data,
       date,
-      type: "expense", // or set from UI later
     };
 
     if (transaction) {
       updateTransaction.mutate({ ...transaction, ...transactionData });
-      toast.success("Transaction updated!");
+      toast.success("transaction updated");
     } else {
       addTransaction.mutate(transactionData);
-      toast.success("Transaction added!");
+      toast.success("transaction added");
     }
 
     setOpen(false);
@@ -99,6 +109,35 @@ export default function TransactionFormDialog({
           />
           {errors.amount && (
             <p className="text-red-500">{errors.amount.message}</p>
+          )}
+
+          <Controller
+            control={control}
+            name="category"
+            render={({ field }) => (
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    "Food",
+                    "Transport",
+                    "Utilities",
+                    "Entertainment",
+                    "Health",
+                    "Other",
+                  ].map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {errors.category && (
+            <p className="text-red-500">{errors.category.message}</p>
           )}
 
           <Button type="submit" className="w-full">
