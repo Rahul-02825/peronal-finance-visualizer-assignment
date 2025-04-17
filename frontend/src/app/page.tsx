@@ -5,8 +5,8 @@ import TransactionForm from "@/components/TransactionForm"; // Import your Trans
 import { useTransactions } from "@/lib/hooks/useTransactions"; // Import the hook for transactions
 
 export default function Home() {
-  const { transactions, addTransaction } = useTransactions(); // Use the hook to get transactions and add a new one
-
+  const { transactions} = useTransactions(); // Use the hook to get transactions and add a new one
+  console.log(transactions)
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
@@ -20,8 +20,8 @@ export default function Home() {
             {transactions.length > 0 ? (
               transactions.map((transaction) => (
                 <li key={transaction.id} className="p-4 border border-gray-200 rounded-md">
-                  <p className="text-lg font-medium">{transaction.title}</p>
-                  <p>{transaction.type === "income" ? "+" : "-"} ${transaction.amount}</p>
+                  <p className="text-lg font-medium">{transaction.description}</p>
+                  <p> {transaction.amount}</p>
                   <p>{new Date(transaction.date).toLocaleDateString()}</p>
                 </li>
               ))

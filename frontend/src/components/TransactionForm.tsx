@@ -1,6 +1,5 @@
-"use client"
+"use client";
 
-import { useState } from "react";
 import { useTransactions } from "@/lib/hooks/useTransactions";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,10 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
 import { Transaction } from "@/types/transaction";
+
 const transactionSchema = z.object({
-  title: z.string().min(1, "Title is required"),
   amount: z.number().positive("Amount must be positive"),
-  type: z.enum(["income", "expense"]),
+  description: z.string().min(1, "Description is required"),
 });
 
 type TransactionFormData = z.infer<typeof transactionSchema>;
@@ -24,23 +23,25 @@ export default function TransactionForm({ transaction }: { transaction?: Transac
   const { register, handleSubmit, formState: { errors } } = useForm<TransactionFormData>({
     resolver: zodResolver(transactionSchema),
     defaultValues: transaction
-      ? { title: transaction.title, amount: transaction.amount, type: transaction.type }
-      : { title: "", amount: 0, type: "income" },
+      ? { description: transaction.description, amount: transaction.amount }
+      : { description: "", amount: 0 },
   });
 
   const onSubmit = async (data: TransactionFormData) => {
-    const date = new Date().toISOString(); 
+    const date = new Date().toISOString();
 
     const transactionData = {
       ...data,
-      date, 
+      date,
     };
 
+    console.log(transactionData);
+
     if (transaction) {
-      await updateTransaction.mutate({ ...transaction, ...transactionData });
+      updateTransaction.mutate({ ...transaction, ...transactionData });
       toast.success("Transaction updated!");
     } else {
-      await addTransaction.mutate(transactionData);
+      addTransaction.mutate(transactionData);
       toast.success("Transaction added!");
     }
   };
@@ -48,12 +49,14 @@ export default function TransactionForm({ transaction }: { transaction?: Transac
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <Input
-        {...register("title")}
-        placeholder="Transaction Title"
+        {...register("description")}
+        placeholder="Description"
         className="w-full"
       />
-      {errors.title && <p className="text-red-500">{errors.title.message}</p>}
-      
+      {errors.description && (
+        <p className="text-red-500">{errors.description.message}</p>
+      )}
+
       <Input
         {...register("amount", { valueAsNumber: true })}
         placeholder="Amount"
@@ -61,11 +64,6 @@ export default function TransactionForm({ transaction }: { transaction?: Transac
         className="w-full"
       />
       {errors.amount && <p className="text-red-500">{errors.amount.message}</p>}
-
-      <select {...register("type")} className="w-full border p-2">
-        <option value="income">Income</option>
-        <option value="expense">Expense</option>
-      </select>
 
       <Button type="submit" className="w-full">Submit</Button>
     </form>

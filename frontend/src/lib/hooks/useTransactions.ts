@@ -8,14 +8,15 @@ export const useTransactions = () => {
   const { data: transactions = [], ...rest } = useQuery({
     queryKey: ["transactions"],
     queryFn: async () => {
-      const res = await api.get<Transaction[]>("/transactions");
+      const res = await api.get<Transaction[]>("/transactions/getall");
       return res.data;
     },
   });
 
   const addTransaction = useMutation({
     mutationFn: async (tx: Omit<Transaction, "id">) => {
-      const res = await api.post("/transactions", tx);
+      const res = await api.post("/transactions/create", tx);
+      console.log(res.data)
       return res.data;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["transactions"] }),
