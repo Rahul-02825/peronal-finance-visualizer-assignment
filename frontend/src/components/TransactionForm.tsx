@@ -12,10 +12,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-// import { useToast } from "@/components/ui/toast";
 import { Transaction } from "@/types/transaction";
-import { useEffect } from "react";
-import {toast} from 'sonner'
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 import {
   Select,
@@ -43,6 +43,7 @@ export default function TransactionFormDialog({
   transaction?: Transaction;
 }) {
   const { addTransaction, updateTransaction } = useTransactions();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
@@ -66,56 +67,104 @@ export default function TransactionFormDialog({
         amount: transaction.amount,
         category: transaction.category,
       });
+    } else {
+      reset({
+        description: "",
+        amount: 0,
+        category: "",
+      });
     }
-  }, [transaction, reset]);
+  }, [transaction, reset, open]);
 
   const onSubmit = async (data: TransactionFormData) => {
-    const date = new Date().toISOString();
+    setIsSubmitting(true);
+    
+    try {
+      const date = new Date().toISOString();
+      const transactionData = {
+        ...data,
+        date,
+      };
 
-    const transactionData = {
-      ...data,
-      date,
-    };
-
-    if (transaction) {
-      updateTransaction.mutate({ ...transaction, ...transactionData });
-      toast("transaction updated");
-    } else {
-      addTransaction.mutate(transactionData);
-      toast("transaction added");
+      if (transaction) {
+        await updateTransaction.mutateAsync(
+          { ...transaction, ...transactionData },
+          {
+            onSuccess: () => {
+              toast.success("Transaction updated successfully");
+              setOpen(false);
+              reset();
+            },
+            onError: (error) => {
+              toast.error("Failed to update transaction");
+              console.error(error);
+            },
+          }
+        );
+      } else {
+        await addTransaction.mutateAsync(
+          transactionData,
+          {
+            onSuccess: () => {
+              toast.success("Transaction added successfully");
+              setOpen(false);
+              reset();
+            },
+            onError: (error) => {
+              toast.error("Failed to add transaction");
+              console.error(error);
+            },
+          }
+        );
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setOpen(false);
-    reset();
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isSubmitting) {
+        setOpen(isOpen);
+      }
+    }}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{transaction ? "Edit" : "Add"} Transaction</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
-          <Input {...register("description")} placeholder="Description" />
+          <Input 
+            {...register("description")} 
+            placeholder="Description" 
+            disabled={isSubmitting}
+          />
           {errors.description && (
-            <p className="text-red-500">{errors.description.message}</p>
+            <p className="text-red-500 text-sm">{errors.description.message}</p>
           )}
 
           <Input
             {...register("amount", { valueAsNumber: true })}
             type="number"
             placeholder="Amount"
+            disabled={isSubmitting}
           />
           {errors.amount && (
-            <p className="text-red-500">{errors.amount.message}</p>
+            <p className="text-red-500 text-sm">{errors.amount.message}</p>
           )}
 
           <Controller
             control={control}
             name="category"
             render={({ field }) => (
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select 
+                onValueChange={field.onChange} 
+                defaultValue={field.value}
+                disabled={isSubmitting}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select Category" />
                 </SelectTrigger>
@@ -137,11 +186,22 @@ export default function TransactionFormDialog({
             )}
           />
           {errors.category && (
-            <p className="text-red-500">{errors.category.message}</p>
+            <p className="text-red-500 text-sm">{errors.category.message}</p>
           )}
 
-          <Button type="submit" className="w-full">
-            {transaction ? "Update" : "Add"}
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {transaction ? "Updating..." : "Adding..."}
+              </>
+            ) : (
+              transaction ? "Update" : "Add"
+            )}
           </Button>
         </form>
       </DialogContent>
