@@ -230,7 +230,6 @@ export default function TransactionFormDialog({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      initialFocus
                       disabled={(date:Date) => date > new Date()}
                     />
                   </PopoverContent>

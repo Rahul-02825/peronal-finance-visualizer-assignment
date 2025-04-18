@@ -27,7 +27,7 @@ export default function Navbar() {
         </div>
 
         <div className="hidden md:flex space-x-6">
-          {links.map(({ href, label }, index) => (
+          {links.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
