@@ -62,7 +62,6 @@ export default function Home() {
       <Navbar />
       <div className="relative z-10 grid grid-rows-[auto_1fr_auto] min-h-screen px-4 pb-16 sm:p-20">
         <main className="flex flex-col gap-6 w-full">
-          {/* Mobile Add Transaction Button (Fixed Position) */}
           <div className="fixed bottom-6 right-6 z-20 sm:hidden">
             <Button 
               onClick={handleAddClick} 
@@ -73,20 +72,17 @@ export default function Home() {
             </Button>
           </div>
 
-          {/* Responsive Layout for Controls */}
           <div className="w-full flex flex-col sm:flex-row gap-4 justify-between items-center mt-4">
-            {/* Desktop Add Transaction Button */}
             <Button className="bg-green-400 w-full sm:w-auto hidden sm:block" onClick={handleAddClick}>
               Add Transaction
             </Button>
             
-            {/* Chart component with responsive sizing */}
             <div className="w-full sm:w-auto">
               <ExpenseChart transactions={transactions} />
             </div>
           </div>
 
-          <div className="w-full max-h-[650px] sm:max-h-[500px] overflow-y-auto border rounded-lg p-4 backdrop-blur-md">
+          <div className="w-full max-h-[700px] sm:max-h-[500px] overflow-y-auto border rounded-lg p-4 backdrop-blur-md">
             <h2 className="text-xl font-semibold mb-4 text-left text-white">Recent Transactions</h2>
             
             {isLoading ? (

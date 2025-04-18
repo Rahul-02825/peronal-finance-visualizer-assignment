@@ -96,7 +96,7 @@ export default function TransactionFormDialog({
     try {
       const transactionData = {
         ...data,
-        date: data.date.toISOString(), // Convert Date object to ISO string for backend
+        date: data.date.toISOString(), 
       };
 
       if (transaction) {
