@@ -12,9 +12,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/toast";
+// import { useToast } from "@/components/ui/toast";
 import { Transaction } from "@/types/transaction";
 import { useEffect } from "react";
+import {toast} from 'sonner'
 
 import {
   Select,
@@ -42,7 +43,6 @@ export default function TransactionFormDialog({
   transaction?: Transaction;
 }) {
   const { addTransaction, updateTransaction } = useTransactions();
-  const { toast } = useToast();
 
   const {
     register,
@@ -79,10 +79,10 @@ export default function TransactionFormDialog({
 
     if (transaction) {
       updateTransaction.mutate({ ...transaction, ...transactionData });
-      toast.success("transaction updated");
+      toast("transaction updated");
     } else {
       addTransaction.mutate(transactionData);
-      toast.success("transaction added");
+      toast("transaction added");
     }
 
     setOpen(false);
