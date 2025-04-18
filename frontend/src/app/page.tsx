@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Particles from "@/components/ui/Particles";
-import { useTransactions } from "@/lib/hooks/useTransactions"; 
+import { useTransactions } from "@/lib/hooks/useTransactions";
 import {
   BarChart,
   Bar,
@@ -14,8 +14,20 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
 } from "recharts";
-import { PieChart, Pie, Cell, Legend } from "recharts";
+
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import { useMediaQuery } from "usehooks-ts";
 
 const CATEGORIES = ["Food", "Transport", "Utilities", "Entertainment", "Health", "Other"];
 
@@ -29,31 +41,39 @@ export default function BudgetPage() {
     Other: 1000,
   });
 
-  const { transactions } = useTransactions(); 
-  // useMemo for complex calculation done
+  const [selectedCategory, setSelectedCategory] = useState<string>(CATEGORIES[0]);
+
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
+  const { transactions } = useTransactions();
+
   const categoryExpenses = useMemo(() => {
     const expenses: Record<string, number> = {};
-
     transactions.forEach((item) => {
       if (CATEGORIES.includes(item.category)) {
         expenses[item.category] = (expenses[item.category] || 0) + item.amount;
       }
     });
-
     return expenses;
   }, [transactions]);
 
-  // Calculating  total expenses for each month
   const monthlyExpenses = useMemo(() => {
     const expenses: Record<string, number> = {};
-
     transactions.forEach((item) => {
-      const month = new Date(item.date).toLocaleString("default", { month: "long", year: "numeric" });
+      const month = new Date(item.date).toLocaleString("default", {
+        month: "long",
+        year: "numeric",
+      });
       expenses[month] = (expenses[month] || 0) + item.amount;
     });
-
     return expenses;
   }, [transactions]);
+
+  const totalExpense = useMemo(() => {
+    return transactions.reduce((acc, item) => acc + item.amount, 0);
+  }, [transactions]);
+
+  const selectedCategoryExpense = categoryExpenses[selectedCategory] || 0;
 
   const handleChange = (category: string, value: number) => {
     setBudgets((prev) => ({
@@ -109,7 +129,7 @@ export default function BudgetPage() {
         <h1 className="text-3xl font-bold mb-6">Manage Category Budgets</h1>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {CATEGORIES.map((cat) => (
+          {CATEGORIES.map((cat) => (
             <Card key={cat} className="bg-black border border-gray-700">
               <CardHeader>
                 <CardTitle className="text-white">{cat}</CardTitle>
@@ -127,7 +147,7 @@ export default function BudgetPage() {
           ))}
         </div>
 
-        <div className="flex justify-end gap-4">
+        <div className="flex justify-end gap-4 mt-6">
           <Button variant="secondary" onClick={handleReset}>
             Reset to Default
           </Button>
@@ -136,7 +156,43 @@ export default function BudgetPage() {
           </Button>
         </div>
 
-        {/* Budget vs Expense Chart */}
+        {/* TOTAL EXPENSE CARDS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
+          <Card className="bg-black border border-gray-700 text-white">
+            <CardHeader>
+              <CardTitle>Total Expense</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">₹ {totalExpense.toLocaleString()}</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-black border border-gray-700 text-white">
+            <CardHeader>
+              <CardTitle>Total Expense by Category</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <label className="block mb-2">Select Category:</label>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-full bg-black border border-white text-white">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent className="bg-black text-white border border-gray-700">
+                  {CATEGORIES.map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-2xl font-semibold mt-4">
+                ₹ {selectedCategoryExpense.toLocaleString()}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* BUDGET VS EXPENSE BAR CHART */}
         <div className="mt-10">
           <h2 className="text-2xl font-semibold mb-4">Budget vs Expense</h2>
           <div className="w-full h-96">
@@ -153,7 +209,7 @@ export default function BudgetPage() {
           </div>
         </div>
 
-        {/* Monthly Expense Bar Chart */}
+        {/* MONTHLY EXPENSE BAR CHART */}
         <div className="mt-10">
           <h2 className="text-2xl font-semibold mb-4">Monthly Expense</h2>
           <div className="w-full h-96">
@@ -169,7 +225,7 @@ export default function BudgetPage() {
           </div>
         </div>
 
-        {/* Category-wise Expense Pie Chart */}
+        {/* CATEGORY-WISE EXPENSE PIE CHART */}
         <div className="mt-10">
           <h2 className="text-2xl font-semibold mb-4">Category-wise Expense Distribution</h2>
           <div className="w-full h-96">
@@ -179,12 +235,17 @@ export default function BudgetPage() {
                   data={pieChartData}
                   dataKey="expense"
                   nameKey="category"
-                  outerRadius={150}
+                  outerRadius={isMobile ? 90 : 150}
                   fill="#8884d8"
                   label
                 >
                   {pieChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={["#82ca9d", "#8884d8", "#a4de6c", "#d0ed57", "#f4a261", "#e76f51"][index]} />
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={
+                        ["#82ca9d", "#8884d8", "#a4de6c", "#d0ed57", "#f4a261", "#e76f51"][index]
+                      }
+                    />
                   ))}
                 </Pie>
                 <Legend />
@@ -193,6 +254,7 @@ export default function BudgetPage() {
           </div>
         </div>
 
+        {/* BUDGET SUMMARY TABLE */}
         <div className="mt-10">
           <h2 className="text-2xl font-semibold mb-4">Budget Summary</h2>
           <div className="border border-gray-700 rounded-lg overflow-hidden">
@@ -215,6 +277,6 @@ export default function BudgetPage() {
           </div>
         </div>
       </div>
-    </div>  
+    </div>
   );
 }
