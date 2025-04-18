@@ -1,193 +1,221 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useTransactions } from "@/lib/hooks/useTransactions";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Navbar from "@/components/Navbar";
+import Particles from "@/components/ui/Particles";
+import { useTransactions } from "@/lib/hooks/useTransactions"; // Assuming you have a hook for transactions
 import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
   BarChart,
   Bar,
   XAxis,
   YAxis,
   CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Particles from "@/components/ui/Particles";
-import Navbar from "@/components/Navbar";
+import { PieChart, Pie, Cell, Legend } from "recharts";
 
-const CATEGORIES = [
-  "Food",
-  "Transport",
-  "Utilities",
-  "Entertainment",
-  "Health",
-  "Other",
-];
+const CATEGORIES = ["Food", "Transport", "Utilities", "Entertainment", "Health", "Other"];
 
-const COLORS = [
-  "#8884d8",
-  "#82ca9d",
-  "#ffc658",
-  "#ff7f50",
-  "#8dd1e1",
-  "#a4de6c",
-];
+export default function BudgetPage() {
+  const [budgets, setBudgets] = useState<Record<string, number>>({
+    Food: 5000,
+    Transport: 2000,
+    Utilities: 3000,
+    Entertainment: 2500,
+    Health: 1500,
+    Other: 1000,
+  });
 
-function getMonthName(dateStr: string) {
-  return new Date(dateStr).toLocaleString("default", { month: "short" });
-}
+  const { transactions } = useTransactions(); // Assuming this hook gives you the transactions
 
-export default function Dashboard() {
-  const { transactions } = useTransactions();
-  const [selectedCategory, setSelectedCategory] = useState<string>("Food");
-
-  const { monthlyTotals, categoryTotals, totalExpenses } = useMemo(() => {
-    const monthly: Record<string, number> = {};
-    const category: Record<string, number> = {};
-    let total = 0;
+  // Calculate total expenses per category
+  const categoryExpenses = useMemo(() => {
+    const expenses: Record<string, number> = {};
 
     transactions.forEach((item) => {
-      const month = getMonthName(item.date);
-      monthly[month] = (monthly[month] || 0) + item.amount;
-
       if (CATEGORIES.includes(item.category)) {
-        category[item.category] = (category[item.category] || 0) + item.amount;
+        expenses[item.category] = (expenses[item.category] || 0) + item.amount;
       }
-
-      total += item.amount;
     });
 
-    return {
-      monthlyTotals: monthly,
-      categoryTotals: category,
-      totalExpenses: total,
-    };
+    return expenses;
   }, [transactions]);
 
-  const barData = Object.entries(monthlyTotals).map(([month, total]) => ({
+  // Calculate total expenses per month
+  const monthlyExpenses = useMemo(() => {
+    const expenses: Record<string, number> = {};
+
+    transactions.forEach((item) => {
+      const month = new Date(item.date).toLocaleString("default", { month: "long", year: "numeric" });
+      expenses[month] = (expenses[month] || 0) + item.amount;
+    });
+
+    return expenses;
+  }, [transactions]);
+
+  const handleChange = (category: string, value: number) => {
+    setBudgets((prev) => ({
+      ...prev,
+      [category]: value,
+    }));
+  };
+
+  const handleReset = () => {
+    setBudgets({
+      Food: 5000,
+      Transport: 2000,
+      Utilities: 3000,
+      Entertainment: 2500,
+      Health: 1500,
+      Other: 1000,
+    });
+  };
+
+  const budgetVsExpenseData = CATEGORIES.map((category) => ({
+    category,
+    budget: budgets[category],
+    expense: categoryExpenses[category] || 0,
+  }));
+
+  const monthlyExpenseData = Object.entries(monthlyExpenses).map(([month, expense]) => ({
     month,
-    total,
+    expense,
   }));
 
-  const pieData = CATEGORIES.map((cat) => ({
-    name: cat,
-    value: categoryTotals[cat] || 0,
+  const pieChartData = CATEGORIES.map((category) => ({
+    category,
+    expense: categoryExpenses[category] || 0,
   }));
-
-  const filteredCategoryAmount = categoryTotals[selectedCategory] || 0;
 
   return (
-    <div className="relative w-full min-h-screen overflow-hidden bg-black text-white">
+    <div className="relative min-h-screen w-full bg-black text-white">
       <Navbar />
       <div className="absolute inset-0 z-0">
         <Particles
-          particleColors={["#ffffff", "#ffffff"]}
-          particleCount={200}
+          particleColors={["#ffffff", "#8884d8"]}
+          particleCount={100}
           particleSpread={10}
-          speed={0.1}
-          particleBaseSize={100}
-          moveParticlesOnHover={true}
+          speed={0.2}
+          particleBaseSize={80}
+          moveParticlesOnHover
           alphaParticles={false}
           disableRotation={false}
         />
       </div>
 
-      <div className="relative z-10 p-6 space-y-8 pt-24">
-        {/* Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Card className="bg-sky-200  ">
-            <CardHeader>
-              <CardTitle>Total Expenses</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-semibold">
-                ₹ {totalExpenses.toFixed(2)}
-              </p>
-            </CardContent>
-          </Card>
+      <div className="relative z-10 pt-24 px-6 space-y-15">
+        <h1 className="text-3xl font-bold mb-6">Manage Category Budgets</h1>
 
-          <Card className="bg-sky-200  ">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>{selectedCategory} Expenses</CardTitle>
-                <Select
-                  onValueChange={(val) => setSelectedCategory(val)}
-                  defaultValue={selectedCategory}
-                >
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Select Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-semibold">
-                ₹ {filteredCategoryAmount.toFixed(2)}
-              </p>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {CATEGORIES.map((cat) => (
+            <Card key={cat} className="bg-black">
+              <CardHeader>
+                <CardTitle className="text-white">{cat}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <label className="block text-sm mb-2 text-white border-amber-100">Monthly Budget (₹):</label>
+                <input
+                  type="number"
+                  value={budgets[cat]}
+                  onChange={(e) => handleChange(cat, +e.target.value)}
+                  className="w-full bg-black  border-black text-white borderrounded px-3 py-2"
+                />
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Bar Chart */}
+        <div className="flex justify-end gap-4">
+          <Button variant="secondary" onClick={handleReset}>
+            Reset to Default
+          </Button>
+          <Button variant="default" onClick={() => alert("Budgets Saved!")}>
+            Save Budgets
+          </Button>
+        </div>
+
+        {/* Budget vs Expense Chart */}
+        <div className="mt-10">
+          <h2 className="text-2xl font-semibold mb-4">Budget vs Expense</h2>
           <div className="w-full h-96">
-            <h2 className="text-xl mb-2 font-medium">Monthly Expenses</h2>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barData}>
+              <BarChart data={budgetVsExpenseData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="category" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="budget" fill="#82ca9d" />
+                <Bar dataKey="expense" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Monthly Expense Bar Chart */}
+        <div className="mt-10">
+          <h2 className="text-2xl font-semibold mb-4">Monthly Expense</h2>
+          <div className="w-full h-96">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyExpenseData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="total" fill="#8884d8" />
+                <Bar dataKey="expense" fill="#8884d8" />
               </BarChart>
             </ResponsiveContainer>
           </div>
+        </div>
 
-          {/* Pie Chart */}
+        {/* Category-wise Expense Pie Chart */}
+        <div className="mt-10">
+          <h2 className="text-2xl font-semibold mb-4">Category-wise Expense Distribution</h2>
           <div className="w-full h-96">
-            <h2 className="text-xl font-medium mb-4">Category Stats</h2>
-            <ResponsiveContainer width="100%" height="80%">
+            <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={pieData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
+                  data={pieChartData}
+                  dataKey="expense"
+                  nameKey="category"
+                  outerRadius={150}
+                  fill="#8884d8"
                   label
                 >
-                  {pieData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
+                  {pieChartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={["#82ca9d", "#8884d8", "#a4de6c", "#d0ed57", "#f4a261", "#e76f51"][index]} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Legend />
               </PieChart>
             </ResponsiveContainer>
           </div>
         </div>
+
+        <div className="mt-10">
+          <h2 className="text-2xl font-semibold mb-4">Budget Summary</h2>
+          <div className="border border-gray-700 rounded-lg overflow-hidden">
+            <table className="w-full text-left table-auto">
+              <thead className="bg-gray-800">
+                <tr>
+                  <th className="px-4 py-2 border-r border-gray-700">Category</th>
+                  <th className="px-4 py-2">Budget (₹)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {CATEGORIES.map((cat) => (
+                  <tr key={cat} className="border-t border-gray-700">
+                    <td className="px-4 py-2 border-r border-gray-700">{cat}</td>
+                    <td className="px-4 py-2">{budgets[cat]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
-    </div>
+    </div>  
   );
 }
