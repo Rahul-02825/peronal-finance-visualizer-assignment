@@ -43,7 +43,7 @@ export default function BudgetPage() {
     return expenses;
   }, [transactions]);
 
-  // Calculating total expenses for each month
+  // Calculating  total expenses for each month
   const monthlyExpenses = useMemo(() => {
     const expenses: Record<string, number> = {};
 
@@ -109,18 +109,18 @@ export default function BudgetPage() {
         <h1 className="text-3xl font-bold mb-6">Manage Category Budgets</h1>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {CATEGORIES.map((cat) => (
-            <Card key={cat} className="bg-black">
+        {CATEGORIES.map((cat) => (
+            <Card key={cat} className="bg-black border border-gray-700">
               <CardHeader>
                 <CardTitle className="text-white">{cat}</CardTitle>
               </CardHeader>
               <CardContent>
-                <label className="block text-sm mb-2 text-white border-amber-100">Monthly Budget (₹):</label>
+                <label className="block text-sm mb-2 text-white">Monthly Budget (₹):</label>
                 <input
                   type="number"
                   value={budgets[cat]}
                   onChange={(e) => handleChange(cat, +e.target.value)}
-                  className="w-full bg-black  border-black text-white borderrounded px-3 py-2"
+                  className="w-full bg-black text-white border border-white rounded px-3 py-2 focus:outline-none focus:border-blue-500"
                 />
               </CardContent>
             </Card>

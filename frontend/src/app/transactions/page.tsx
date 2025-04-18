@@ -8,7 +8,7 @@ import { useToast } from "@/components/ui/toast";
 import Navbar from "@/components/Navbar";
 import ExpenseChart from "@/components/ExpenseChart";
 import Particles from "@/components/ui/Particles";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 
 export default function Home() {
   const { transactions, isLoading, deleteTransaction } = useTransactions();
@@ -60,14 +60,33 @@ export default function Home() {
       </div>
 
       <Navbar />
-      <div className="relative z-10 grid grid-rows-[auto_1fr_auto] min-h-screen pb-20 sm:p-20">
-        <main className="flex flex-col gap-8 row-start-2 w-full">
-          <div className="w-full flex justify-start">
-            <Button className="bg-green-400 mx-5" onClick={handleAddClick}>Add Transaction</Button>
-            <ExpenseChart transactions={transactions} />
+      <div className="relative z-10 grid grid-rows-[auto_1fr_auto] min-h-screen px-4 pb-16 sm:p-20">
+        <main className="flex flex-col gap-6 w-full">
+          {/* Mobile Add Transaction Button (Fixed Position) */}
+          <div className="fixed bottom-6 right-6 z-20 sm:hidden">
+            <Button 
+              onClick={handleAddClick} 
+              className="bg-green-400 h-14 w-14 rounded-full shadow-lg"
+              aria-label="Add Transaction"
+            >
+              <Plus size={24} />
+            </Button>
           </div>
 
-          <div className="w-full max-h-[500px] overflow-y-auto border rounded-lg p-4 backdrop-blur-md">
+          {/* Responsive Layout for Controls */}
+          <div className="w-full flex flex-col sm:flex-row gap-4 justify-between items-center mt-4">
+            {/* Desktop Add Transaction Button */}
+            <Button className="bg-green-400 w-full sm:w-auto hidden sm:block" onClick={handleAddClick}>
+              Add Transaction
+            </Button>
+            
+            {/* Chart component with responsive sizing */}
+            <div className="w-full sm:w-auto">
+              <ExpenseChart transactions={transactions} />
+            </div>
+          </div>
+
+          <div className="w-full max-h-[650px] sm:max-h-[500px] overflow-y-auto border rounded-lg p-4 backdrop-blur-md">
             <h2 className="text-xl font-semibold mb-4 text-left text-white">Recent Transactions</h2>
             
             {isLoading ? (
@@ -80,19 +99,22 @@ export default function Home() {
                 {transactions.map((transaction) => (
                   <li
                     key={transaction._id}
-                    className="p-4 border text-white rounded-md flex justify-between items-start gap-2"
+                    className="p-4 border text-white rounded-md flex flex-col sm:flex-row justify-between items-start gap-4"
                   >
-                    <div className="text-left">
+                    <div className="text-left w-full">
                       <p className="text-lg font-medium">{transaction.description}</p>
-                      <p>₹{transaction.amount}</p>
-                      <p className="text-sm text-gray-500">
-                        {new Date(transaction.date).toLocaleDateString()}
-                      </p>
-                      <p className="text-xs text-gray-400">Category: {transaction.category}</p>
+                      <div className="flex justify-between items-center">
+                        <p className="text-lg font-bold">₹{transaction.amount}</p>
+                        <p className="text-sm text-gray-400">
+                          {new Date(transaction.date).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1">Category: {transaction.category}</p>
                     </div>
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-row sm:flex-col gap-2 w-full sm:w-auto">
                       <Button 
                         size="sm" 
+                        className="flex-1 sm:flex-auto"
                         onClick={() => handleEditClick(transaction)}
                         disabled={isDeleting === transaction._id}
                       >
@@ -101,13 +123,14 @@ export default function Home() {
                       <Button 
                         size="sm" 
                         variant="destructive" 
+                        className="flex-1 sm:flex-auto"
                         onClick={() => handleDeleteClick(transaction._id)}
                         disabled={isDeleting === transaction._id}
                       >
                         {isDeleting === transaction._id ? (
                           <>
                             <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                            Deleting...
+                            <span className="hidden sm:inline">Deleting...</span>
                           </>
                         ) : "Delete"}
                       </Button>
@@ -116,7 +139,7 @@ export default function Home() {
                 ))}
               </ul>
             ) : (
-              <p className="text-left text-white">No transactions found.</p>
+              <p className="text-center text-white py-10">No transactions found.</p>
             )}
           </div>
         </main>
