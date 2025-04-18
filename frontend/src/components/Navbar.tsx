@@ -30,7 +30,6 @@ export default function Navbar() {
             : "Dashboard"}
         </div>
 
-        {/* Desktop Nav */}
         <div className="hidden md:flex space-x-4">
           {links.map(({ href, label }) => (
             <Link
@@ -45,7 +44,6 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* Mobile Hamburger */}
         <button
           className="md:hidden focus:outline-none"
           onClick={toggleMenu}
@@ -55,7 +53,6 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile Dropdown */}
       {menuOpen && (
         <div className="md:hidden mt-4 flex flex-col space-y-2">
           {links.map(({ href, label }) => (

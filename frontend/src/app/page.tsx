@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Particles from "@/components/ui/Particles";
-import { useTransactions } from "@/lib/hooks/useTransactions"; // Assuming you have a hook for transactions
+import { useTransactions } from "@/lib/hooks/useTransactions"; 
 import {
   BarChart,
   Bar,
@@ -29,9 +29,8 @@ export default function BudgetPage() {
     Other: 1000,
   });
 
-  const { transactions } = useTransactions(); // Assuming this hook gives you the transactions
-
-  // Calculate total expenses per category
+  const { transactions } = useTransactions(); 
+  // useMemo for complex calculation done
   const categoryExpenses = useMemo(() => {
     const expenses: Record<string, number> = {};
 
@@ -44,7 +43,7 @@ export default function BudgetPage() {
     return expenses;
   }, [transactions]);
 
-  // Calculate total expenses per month
+  // Calculating total expenses for each month
   const monthlyExpenses = useMemo(() => {
     const expenses: Record<string, number> = {};
 

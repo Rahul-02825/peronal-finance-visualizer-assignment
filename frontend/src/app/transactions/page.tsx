@@ -37,7 +37,6 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black">
-      {/* Background particles with higher z-index to ensure visibility */}
       <div className="absolute inset-0 z-0">
         <Particles
           particleColors={["#ffffff", "#8884d8"]}
@@ -52,13 +51,12 @@ export default function Home() {
       </div>
 
       <Navbar />
-      <div className="relative z-10 grid grid-rows-[auto_1fr_auto] min-h-screen  pb-20 gap-16 sm:p-20">
+      <div className="relative z-10 grid grid-rows-[auto_1fr_auto] min-h-screen  pb-20  sm:p-20">
         <main className="flex flex-col gap-8 row-start-2 w-full">
           <div className="w-full flex justify-start">
             <Button  className="bg-green-400 mx-5" onClick={handleAddClick}>Add Transaction</Button>
             <ExpenseChart transactions={transactions} />
           </div>
-
 
           <div className="w-full max-h-[500px] overflow-y-auto border rounded-lg p-4 backdrop-blur-md">
             <h2 className="text-xl font-semibold mb-4 text-left text-white">Recent Transactions</h2>
