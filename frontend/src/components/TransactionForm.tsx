@@ -15,7 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Transaction } from "@/types/transaction";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 
 import {
   Select,
@@ -25,10 +26,20 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
 const transactionSchema = z.object({
   amount: z.number().positive("Amount must be positive"),
   description: z.string().min(1, "Description is required"),
   category: z.string().min(1, "Category is required"),
+  date: z.date({
+    required_error: "Date is required",
+  }),
 });
 
 type TransactionFormData = z.infer<typeof transactionSchema>;
@@ -57,6 +68,7 @@ export default function TransactionFormDialog({
       description: "",
       amount: 0,
       category: "",
+      date: new Date(),
     },
   });
 
@@ -66,12 +78,14 @@ export default function TransactionFormDialog({
         description: transaction.description,
         amount: transaction.amount,
         category: transaction.category,
+        date: new Date(transaction.date),
       });
     } else {
       reset({
         description: "",
         amount: 0,
         category: "",
+        date: new Date(),
       });
     }
   }, [transaction, reset, open]);
@@ -80,10 +94,9 @@ export default function TransactionFormDialog({
     setIsSubmitting(true);
     
     try {
-      const date = new Date().toISOString();
       const transactionData = {
         ...data,
-        date,
+        date: data.date.toISOString(), // Convert Date object to ISO string for backend
       };
 
       if (transaction) {
@@ -187,6 +200,46 @@ export default function TransactionFormDialog({
           />
           {errors.category && (
             <p className="text-red-500 text-sm">{errors.category.message}</p>
+          )}
+
+          {/* Date Picker */}
+          <Controller
+            control={control}
+            name="date"
+            render={({ field }) => (
+              <div className="flex flex-col space-y-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={`w-full justify-start text-left font-normal ${
+                        !field.value ? "text-muted-foreground" : ""
+                      }`}
+                      disabled={isSubmitting}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {field.value ? (
+                        format(field.value, "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                      disabled={(date:Date) => date > new Date()}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
+          />
+          {errors.date && (
+            <p className="text-red-500 text-sm">{errors.date.message}</p>
           )}
 
           <Button 

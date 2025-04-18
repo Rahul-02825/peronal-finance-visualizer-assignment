@@ -16,7 +16,7 @@ export const useTransactions = () => {
   const addTransaction = useMutation({
     mutationFn: async (tx: Omit<Transaction, "_id">) => {
       const res = await api.post("/transactions/create", tx);
-      console.log(res.data)
+      // console.log(res.data)
       return res.data;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["transactions"] }),
